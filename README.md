@@ -7,7 +7,7 @@ API REST con **Node.js, Express y MongoDB (Mongoose)** para gestionar un catálo
 | Integrante | Aportes principales |
 |---|---|
 | Jenniffer Pincay | Estructura del proyecto, conexión a MongoDB, modelos `Producto` y `Usuario`, CRUD y filtro de productos, middlewares `verificarToken` y `soloAdmin`, manejo global de errores, scripts de seed, administrador y tokens de desarrollo, pruebas de Postman de productos |
-| _Nombre Apellido (B)_ | Registro e inicio de sesión (hash con bcrypt y emisión del JWT), modelo `Favorito`, rutas de favoritos con control de propiedad, pruebas de Postman de autenticación, favoritos y aislamiento entre usuarios |
+| Diana Avila | Registro e inicio de sesión (hash con bcrypt y emisión del JWT), modelo `Favorito`, rutas de favoritos con control de propiedad, pruebas de Postman de autenticación, favoritos y aislamiento entre usuarios |
 
 ## Propósito
 
@@ -31,8 +31,8 @@ API REST con **Node.js, Express y MongoDB (Mongoose)** para gestionar un catálo
 ## Instalación
 
 ```bash
-git clone https://github.com/USUARIO/REPOSITORIO.git
-cd REPOSITORIO
+git clone https://github.com/Diana-avila-v/catalogo-api.git
+cd catalogo-api
 npm install
 cp .env.example .env      # en Windows: copy .env.example .env
 ```
@@ -147,7 +147,56 @@ Ejemplo de producto:
 
 ### Autenticación y favoritos
 
-_(Sección del Integrante B: `POST /api/auth/registro`, `POST /api/auth/login`, `GET/POST /api/favoritos`, `DELETE /api/favoritos/:productoId`.)_
+#### Autenticación
+
+| Método y ruta | Acceso | Cuerpo | Respuesta correcta | Errores |
+|---|---|---|---|---|
+| `POST /api/auth/registro` | Público | `{ nombre, correo, password }` (todos obligatorios; `password` de texto con al menos 8 caracteres) | 201 `{ ok, data: usuario }` (siempre con rol `usuario`) | 400 JSON inválido, 409 correo ya registrado, 422 |
+| `POST /api/auth/login` | Público | `{ correo, password }` | 200 `{ ok, data: { token, usuario } }` | 400 JSON inválido, 401 credenciales incorrectas, 422 faltan datos |
+
+Ejemplo de registro:
+```json
+{
+  "nombre": "Ana Pérez",
+  "correo": "ana@correo.test",
+  "password": "Clave12345"
+}
+```
+
+Ejemplo de login:
+```json
+{
+  "correo": "ana@correo.test",
+  "password": "Clave12345"
+}
+```
+
+- La contraseña se guarda como hash con **bcrypt**; ninguna respuesta incluye la contraseña ni el hash.
+- El registro **siempre** crea el rol `usuario`: si el cliente envía `"rol": "admin"` se ignora. El administrador solo se crea con `npm run crear-admin`.
+- El token es un JWT firmado con `JWT_SECRET` (HS256) que contiene `{ id, rol }` y vence según `JWT_EXPIRES_IN`. Se envía en la cabecera `Authorization: Bearer <token>`.
+- Si el correo no existe o la contraseña es incorrecta, la respuesta es la misma (401 `Credenciales incorrectas`), para no revelar qué correos están registrados.
+
+#### Favoritos
+
+| Método y ruta | Acceso | Cuerpo | Respuesta correcta | Errores |
+|---|---|---|---|---|
+| `GET /api/favoritos` | Autenticado | — | 200 `{ ok, total, data: [favoritos] }` con el producto completo en cada favorito | 401 |
+| `POST /api/favoritos` | Autenticado | `{ productoId }` | 201 `{ ok, data: favorito }` | 400 id con formato inválido, 401, 404 producto inexistente, 409 ya es favorito, 422 falta `productoId` |
+| `DELETE /api/favoritos/:productoId` | Autenticado | — | 200 `{ ok, data: { mensaje, productoId } }` | 400 id inválido, 401, 404 no está en tus favoritos |
+
+Ejemplo para agregar un favorito:
+```json
+{
+  "productoId": "6650f1c2a1b2c3d4e5f60718"
+}
+```
+
+**¿Cómo se garantiza que cada usuario solo accede a sus favoritos?**
+
+- Todas las rutas de favoritos pasan por `verificarToken`, que comprueba la firma del JWT y deja en `req.usuario` el `id` del usuario. Ese `id` no se puede falsificar sin conocer `JWT_SECRET`.
+- El usuario se toma **solo** de `req.usuario.id`, nunca del cuerpo ni de la URL. Si el cliente envía un campo `usuario`, se ignora.
+- Cada consulta filtra por ese usuario: listar usa `{ usuario }`, y quitar usa `deleteOne({ usuario, producto })`. Si el usuario B intenta quitar un favorito del usuario A, el filtro no encuentra nada y la respuesta es 404, sin revelar que el favorito existe.
+- El índice único `{ usuario, producto }` impide que un usuario tenga el mismo producto dos veces (409), incluso con peticiones simultáneas.
 
 ## Pruebas con Postman
 
@@ -171,6 +220,9 @@ npx newman run postman/catalogo.postman_collection.json -e postman/catalogo.post
 | 03 Validaciones | Precio 0, negativo o de texto (422), campos vacíos (422), PUT sin campos (422), JSON mal formado (400) |
 | 04 Permisos | Crear sin token, con token vencido o con token alterado (401); crear, actualizar y eliminar con rol usuario (403); el producto sigue existiendo |
 | 05 Persistencia | Producto creado antes de reiniciar sigue disponible después |
+| 06 Autenticación | Registro correcto (201); registro enviando `rol: admin` queda como `usuario`; correo duplicado (409); campos vacíos, correo inválido, sin contraseña o contraseña corta (422); login correcto con token (200); contraseña incorrecta o correo no registrado (401); ninguna respuesta contiene la contraseña ni el hash |
+| 07 Favoritos | Sin token (401); agregar (201); listar con el producto completo (200); duplicado (409); producto inexistente (404); id con formato inválido (400); sin `productoId` (422); quitar (200) |
+| 08 Aislamiento A/B | Usuarios A y B con correos únicos; A agrega un favorito; B no lo ve y no puede quitarlo (404); el favorito de A sigue existiendo |
 
 ## Recursos de apoyo
 

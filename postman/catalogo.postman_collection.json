@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "bab23e70-af8c-4f5c-92f3-752a211446e5",
     "name": "Catálogo de productos - API",
-    "description": "Pruebas de la API. Carpetas 00-05: productos (Integrante A). El Integrante B agrega las carpetas de autenticación y favoritos.",
+    "description": "Pruebas de la API. Carpetas 00-08: 00-05 productos (Jenniffer Pincay); 06-08 autenticación, favoritos y aislamiento entre usuarios (Diana Avila).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
