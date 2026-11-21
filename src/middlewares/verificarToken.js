@@ -1,13 +1,6 @@
 const jwt = require('jsonwebtoken');
 const ApiError = require('../utils/ApiError');
 
-/*
- * Protege las rutas que requieren sesión.
- *  - Lee la cabecera "Authorization: Bearer <token>"
- *  - jwt.verify comprueba la FIRMA (con JWT_SECRET) y la EXPIRACIÓN (campo exp)
- *  - Si todo está bien deja en req.usuario la identidad verificada: { id, rol }
- *    Los controladores toman al usuario SIEMPRE de aquí, nunca del body ni de la URL.
- */
 function verificarToken(req, res, next) {
   const [tipo, token] = (req.headers.authorization || '').split(' ');
 
