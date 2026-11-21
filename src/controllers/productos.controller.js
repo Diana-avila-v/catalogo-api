@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
 const Producto = require('../models/Producto');
+const Favorito = require('../models/Favorito');
 const ApiError = require('../utils/ApiError');
 
 // Únicos campos que el cliente puede enviar. Cualquier otro (_id, createdAt, etc.) se descarta.
@@ -88,9 +88,7 @@ async function eliminar(req, res) {
   const producto = await Producto.findByIdAndDelete(req.params.id);
   if (!producto) throw new ApiError(404, 'Producto no encontrado');
 
-  const { deletedCount } = await mongoose.connection
-    .collection('favoritos')
-    .deleteMany({ producto: producto._id });
+  const { deletedCount } = await Favorito.deleteMany({ producto: producto._id });
 
   res.status(200).json({
     ok: true,
