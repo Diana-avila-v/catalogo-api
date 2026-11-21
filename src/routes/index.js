@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const productosRoutes = require('./productos.routes');
+const authRoutes = require('./auth.routes');
 
 const router = Router();
 
@@ -8,9 +9,9 @@ router.get('/', (req, res) => {
 });
 
 router.use('/productos', productosRoutes);
+router.use('/auth', authRoutes);
 
 // Integrante B agrega aquí sus rutas:
-// router.use('/auth', require('./auth.routes'));
 // router.use('/favoritos', require('./favoritos.routes'));
 
 module.exports = router;
