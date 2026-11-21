@@ -82,7 +82,7 @@ async function actualizar(req, res) {
  * DELETE /api/productos/:id  (admin)
  * Regla de consistencia: al eliminar un producto también se eliminan los favoritos
  * que apuntaban a él, para que ningún usuario quede con un favorito "huérfano".
- * Se usa la colección "favoritos" (modelo Favorito del Integrante B, campo "producto").
+ * Se usa la colección "favoritos" (modelo Favorito de Diana Avila, campo "producto").
  */
 async function eliminar(req, res) {
   const producto = await Producto.findByIdAndDelete(req.params.id);

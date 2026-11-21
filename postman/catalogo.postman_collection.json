@@ -8,7 +8,7 @@
   "item": [
     {
       "name": "00 Preparación (tokens)",
-      "description": "Obtiene tokenAdmin y tokenUsuario con /auth/login (rutas del Integrante B). Si las rutas de autenticación todavía no existen, no ejecutes esta carpeta: genera los tokens con 'npm run tokens-dev' y pégalos en el entorno.",
+      "description": "Obtiene tokenAdmin y tokenUsuario con /auth/login (rutas de Diana Avila).",
       "item": [
         {
           "name": "Login administrador",
