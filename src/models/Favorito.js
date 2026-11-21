@@ -16,12 +16,8 @@ const favoritoSchema = new Schema(
   { timestamps: true, versionKey: false }
 );
 
-// Un usuario no puede tener el mismo producto dos veces en favoritos.
-// Lo garantiza la base de datos (error 11000 -> 409), aunque lleguen dos peticiones a la vez.
-// Además sirve para buscar rápido los favoritos de un usuario (prefijo "usuario").
 favoritoSchema.index({ usuario: 1, producto: 1 }, { unique: true });
 
-// En las respuestas JSON se expone "id" en lugar de "_id"
 favoritoSchema.set('toJSON', {
   transform: (doc, ret) => {
     ret.id = ret._id.toString();

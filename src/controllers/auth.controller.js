@@ -7,13 +7,6 @@ const RONDAS_BCRYPT = 10; // mismo costo que scripts/crearAdmin.js
 const MIN_CONTRASENA = 8;
 const MAX_BYTES_CONTRASENA = 72; // bcrypt ignora todo lo que pase de 72 bytes
 
-/*
- * Nota: ningún mensaje ni nombre de campo de estas respuestas usa la palabra "password"
- * (la colección de Postman verifica que no aparezca). Por eso se habla de "contraseña".
- */
-
-// Hash de relleno para comparar cuando el correo no existe: así el login tarda lo mismo
-// exista o no la cuenta, y no se puede averiguar qué correos están registrados.
 const HASH_RELLENO = bcrypt.hashSync('contrasena-de-relleno', RONDAS_BCRYPT);
 
 function exigirObjeto(body) {
@@ -48,11 +41,10 @@ async function registro(req, res) {
 
   const passwordHash = await bcrypt.hash(password, RONDAS_BCRYPT);
 
-  // El rol se fija aquí: el registro público SIEMPRE crea "usuario".
-  // Mongoose valida nombre y correo (422) y el índice único del correo da 11000 (409).
+  
   const usuario = await Usuario.create({ nombre, correo, passwordHash, rol: 'usuario' });
 
-  res.status(201).json({ ok: true, data: usuario }); // toJSON elimina passwordHash
+  res.status(201).json({ ok: true, data: usuario }); 
 }
 
 // POST /api/auth/login  (público)
@@ -60,7 +52,6 @@ async function login(req, res) {
   exigirObjeto(req.body);
   const { correo, password } = req.body;
 
-  // Se exige texto para que no lleguen operadores como { "$gt": "" } a la consulta
   const errores = [];
   if (typeof correo !== 'string' || !correo.trim()) {
     errores.push({ campo: 'correo', mensaje: 'El correo es obligatorio y debe ser texto' });
@@ -74,7 +65,6 @@ async function login(req, res) {
 
   const coincide = await bcrypt.compare(password, usuario ? usuario.passwordHash : HASH_RELLENO);
   if (!usuario || !coincide) {
-    // Mismo mensaje para correo inexistente y contraseña incorrecta
     throw new ApiError(401, 'Credenciales incorrectas');
   }
 
